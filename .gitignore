@@ -1,0 +1,17 @@
+# Lines beginning with `#` are ignored. Empty lines too.
+
+# Build output
+/redshark
+/redshark-arm
+/redshark-amd64
+
+# Local scope files
+/scope.json
+/evidence-*/
+/chain.jsonl
+
+# Standard Go
+*.test
+*.out
+*.prof
+coverage.txt

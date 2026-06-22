@@ -1,0 +1,16 @@
+{
+  "id": "DRYRUN-DEMO-001",
+  "operator": "training-environment",
+  "sponsor": "internal-only",
+  "issued": "2026-06-21",
+  "expires": "2030-01-01",
+  "network": [
+    "172.16.99.0/24"
+  ],
+  "techniques": [
+    "scanning",
+    "inspection",
+    "report"
+  ],
+  "notes": "Dry-run / chicken-box scope used by the safety test suite. Targets the bash host-only network on 172.16.99.0/24."
+}
