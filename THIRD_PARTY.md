@@ -58,3 +58,38 @@ licensing trail clear.
 If you intend to redistribute this project under a name that already
 maps to Charm's `redshark`, double-check that your fork is "Permitted
 Purpose" before publishing.
+
+---
+
+## Integrated third-party projects
+
+This repository vendors and integrates content from the following
+open-source projects. Each is used under its respective license;
+attribution is recorded here.
+
+### deepteam — confident-ai/deepteam
+
+- **License:** MIT
+- **Use:** Python sidecar (`pybridge/server.py`) wraps `deepteam.red_team()`, `Guardrails`, and vulnerability/attack enumerations via HTTP. The Go `internal/pybridge/` package manages the sidecar lifecycle. No deepteam source code is copied into the Go tree — calls go through the local HTTP interface.
+- **Modules ported:** 37 vulnerability types (`bias`, `toxicity`, `pii_leakage`, `bfla`, `bola`, `ssrf`, …), 28 attack types (`prompt_injection`, `crescendo_jailbreaking`, `tree_jailbreaking`, …).
+- **Package installed into:** `pybridge/.venv/lib/python3.12/site-packages/deepteam/`
+
+### redteam-ai-benchmark — toxy4ny/redteam-ai-benchmark
+
+- **License:** MIT (per repository LICENSE)
+- **Use:** Benchmark dataset and runner patterns ported into the Python sidecar (`/benchmark` endpoint). The Go `BenchmarkTool` routes calls through `internal/pybridge/`.
+- **Dataset cloned to:** `redshark-vendors/redteam-ai-benchmark/datasets/` (not committed; serves as reference only)
+
+### AI-Red-Teaming-Guide — requie/AI-Red-Teaming-Guide
+
+- **License:** MIT (per repository LICENSE)
+- **Use:** 8 markdown templates ported into `docs/redteam-guide/templates/` and served via the Go-native `RedteamGuideTool` in `internal/agent/tools/redteam_tools.go`. No source code; templates only.
+
+### HacxGPT-CLI — HacxGPT-Official/HacxGPT-CLI
+
+- **License:** GPL-3.0
+- **Use:** Design patterns reviewed for CLI/UX inspiration only (banner style, provider config schema, interactive chat loop). No code was ported; only structural ideas informed `cmd/redshark/main.go` and the Bubble Tea model layout. GPL obligations do not apply because no GPL code was distributed — only ideas.
+
+### WorpGPT-Latest-2026 — ExtarDev/WorpGPT-Latest-2026
+
+- **Status:** Placeholder/fake repository with no usable source code. Skipped entirely.

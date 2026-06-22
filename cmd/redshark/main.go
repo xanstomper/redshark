@@ -23,6 +23,7 @@ import (
 	"github.com/xanstomper/redteam-agent/internal/agent/tools"
 	"github.com/xanstomper/redteam-agent/internal/evidence"
 	"github.com/xanstomper/redteam-agent/internal/msg"
+	"github.com/xanstomper/redteam-agent/internal/pybridge"
 	"github.com/xanstomper/redteam-agent/internal/scope"
 	"github.com/xanstomper/redteam-agent/internal/ui/logo"
 	"github.com/xanstomper/redteam-agent/internal/ui/model"
@@ -84,7 +85,28 @@ func main() {
 		Evidence: evStore,
 		MaxOut:   tools.MaxOutputBytes,
 	}
-	toolRegistry := tools.Registry(deps)
+
+	// Optional: start Python bridge for LLM red-team tools (deepteam, benchmark).
+	// If Python or deepteam are not installed, the bridge fails to start and we
+	// gracefully fall back to the Go-only registry.
+	bridge := &pybridge.Bridge{}
+	bridgeCtx, bridgeCancel := context.WithTimeout(context.Background(), 20*1e9)
+	if err := bridge.Start(bridgeCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "python bridge not available: %v\n", err)
+		fmt.Fprintf(os.Stderr, "LLM red-team tools (deepteam/benchmark/guardrails) disabled — running Go-only toolset\n")
+		bridge = nil
+	} else {
+		fmt.Fprintf(os.Stderr, "python bridge started: %s\n", bridge.URL())
+		defer bridge.Stop()
+	}
+	bridgeCancel()
+
+	var toolRegistry *tools.RegistryHandle
+	if bridge != nil {
+		toolRegistry = tools.RegistryWithBridge(deps, bridge)
+	} else {
+		toolRegistry = tools.Registry(deps)
+	}
 
 	// Create session.
 	session := &msg.Session{

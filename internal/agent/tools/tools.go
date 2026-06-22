@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/xanstomper/redteam-agent/internal/evidence"
+	"github.com/xanstomper/redteam-agent/internal/pybridge"
 	"github.com/xanstomper/redteam-agent/internal/scope"
 	"github.com/xanstomper/redteam-agent/internal/util"
 )
@@ -478,19 +479,60 @@ http-post {{
 `, framework, ts, framework)
 }
 
+// RegistryWithBridge returns all tools including the pybridge LLM red-team
+// tools. If the bridge fails to start, it falls back to the standalone
+// registry so the agent can still operate.
+func RegistryWithBridge(deps ToolDeps, bridge *pybridge.Bridge) *RegistryHandle {
+	core := Registry(deps)
+	if bridge == nil || !bridge.Started() {
+		return core
+	}
+	bridgeDeps := pybridge.ToolDeps{
+		Scope:    deps.Scope,
+		Evidence: deps.Evidence,
+		MaxOut:   deps.MaxOut,
+	}
+	rcs := append([]*registryEntry{}, core.entries...)
+	rcs = append(rcs,
+		newRegistryEntry(&pybridge.DeepteamTool{Depts: bridgeDeps, Bridge: bridge}),
+		newRegistryEntry(&pybridge.BenchmarkTool{Depts: bridgeDeps, Bridge: bridge}),
+		newRegistryEntry(&pybridge.GuardrailsTool{Depts: bridgeDeps, Bridge: bridge}),
+	)
+	tools := make([]Tool, 0, len(rcs))
+	for _, rc := range rcs {
+		tools = append(tools, rc.tool)
+	}
+	return &RegistryHandle{entries: rcs, tools: tools}
+}
+
 // Registry returns all tools wired with the given deps, ready for the agent
 // coordinator to present in the model's tool list.
 func Registry(deps ToolDeps) *RegistryHandle {
 	rcs := []*registryEntry{
+		// --- Core recon ---
 		newRegistryEntry(&NmapTool{Deps: deps}),
 		newRegistryEntry(&MasscanTool{Deps: deps}),
 		newRegistryEntry(&HttpxTool{Deps: deps}),
+		newRegistryEntry(&SubfinderTool{Deps: deps}),
+		newRegistryEntry(&DnsxTool{Deps: deps}),
+		newRegistryEntry(&CnameTool{Deps: deps}),
+		newRegistryEntry(&AmassTool{Deps: deps}),
+		// --- Web app / fuzz ---
 		newRegistryEntry(&FfufTool{Deps: deps}),
+		newRegistryEntry(&GobusterTool{Deps: deps}),
+		newRegistryEntry(&NiktoTool{Deps: deps}),
+		newRegistryEntry(&Wafw00fTool{Deps: deps}),
+		// --- Exploit ---
 		newRegistryEntry(&NucleiTool{Deps: deps}),
 		newRegistryEntry(&SqlmapTool{Deps: deps}),
 		newRegistryEntry(&HydraTool{Deps: deps}),
+		// --- Payloads & guides ---
+		newRegistryEntry(&PayloadsTool{Deps: deps}),
+		newRegistryEntry(&RedteamGuideTool{Deps: deps}),
+		// --- C2 & reporting ---
 		newRegistryEntry(&C2ProfileTool{Deps: deps}),
 		newRegistryEntry(&ReportTool{Deps: deps}),
+		// --- Scope & safety ---
 		newRegistryEntry(&ScopeCheckTool{Deps: deps}),
 	}
 	tools := make([]Tool, 0, len(rcs))

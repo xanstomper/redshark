@@ -1,0 +1,5 @@
+# RedShark Python Bridge — Environment
+# Do not commit this directory's .venv; it is rebuilt locally.
+.venv/
+__pycache__/
+*.pyc

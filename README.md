@@ -95,9 +95,11 @@ keybind footer, and scope-aware input bar.
 
 ### Prerequisites
 
-- **Go 1.24+** (tested on 1.26.4)
-- No external binaries required for `--dryrun` mode
-- For live tooling: `nmap`, `masscan`, `httpx`, `ffuf`, `nuclei`, `sqlmap`, `hydra` on `$PATH`
+|- **Go 1.24+** (tested on 1.26.4)
+|- **Python 3.12+** (optional, for LLM red-team tools via deepteam — auto-installed into `pybridge/.venv`)
+|- No external binaries required for `--dryrun` mode
+|- For live tooling: `nmap`, `masscan`, `httpx`, `ffuf`, `nuclei`, `sqlmap`, `hydra`, `nikto`,
+  `gobuster`, `wafw00f`, `subfinder`, `dnsx`, `amass` on `$PATH`
 
 ### Build
 
@@ -229,22 +231,29 @@ All colors are drawn from the semantic palette in `internal/ui/logo/logo.go`:
 ### Package map
 
 ```
-cmd/redshark/          CLI entry point — flags, TUI bootstrap
+cmd/redshark/ CLI entry point — flags, TUI bootstrap, Python bridge auto-start
 internal/
-  agent/
-    tools/             10 tool definitions — each wraps an external binary
-    prompts/           System prompt + refusal language templates
-    stubprovider/      Echo-back LLM provider (dev mode)
-  scope/               Scope document, gate chain, protected-target lists ⚠️ THE CORE
-  evidence/            Append-only SHA-256 hash-chained artifact collector
-  ui/
-    logo/              Mascot art, banner, color palette, separator renderer
-    model/             Bubble Tea v2 MainModel — header/chat/footer/input
-  msg/                 Message types (Operator, Agent, Tool, System)
-  redact/              Output sanitization (API-key, JWT, token stripping)
-  version/             Build metadata (version, commit, date, brand)
-  util/                Misc helpers
-  ansi/                ANSI escape code utilities
+ agent/
+  tools/ 21 tool definitions — nmap, masscan, httpx, ffuf, nuclei, sqlmap, hydra, c2-profile, report, scope_check, subfinder, dnsx, cname, amass, gobuster, nikto, wafw00f, payloads, redteam-guide, deepteam, benchmark, guardrails
+  pybridge/ HTTP bridge to Python sidecar (deepteam + benchmark runner)
+ prompts/ System prompt + refusal language templates
+ stubprovider/ Echo-back LLM provider (dev mode)
+ scope/ Scope document, gate chain, protected-target lists ⚠️ THE CORE
+ evidence/ Append-only SHA-256 hash-chained artifact collector
+ ui/
+  logo/ Mascot art, banner, color palette, separator renderer
+  model/ Bubble Tea v2 MainModel — header/chat/footer/input
+ msg/ Message types (Operator, Agent, Tool, System)
+ redact/ Output sanitization (API-key, JWT, token stripping)
+ version/ Build metadata (version, commit, date, brand)
+ util/ Misc helpers
+ ansi/ ANSI escape code utilities
+pybridge/
+ server.py Flask HTTP sidecar wrapping deepteam + redteam-ai-benchmark
+ launch.py Port-discovery + subprocess launcher
+ .venv/ Python virtualenv (deepteam 1.0.6 + Flask)
+docs/
+ redteam-guide/ Ported AI-Red-Teaming-Guide templates + tables
 ```
 
 ### Package breakdown
@@ -252,7 +261,7 @@ internal/
 | Package | LOC | What it owns |
 |---------|-----|-------------|
 | `internal/scope` | ~370 | Scope document, gate chain, protected-target lists. **The single most critical package.** |
-| `internal/agent/tools` | ~560 | 10 tools: nmap, masscan, httpx, ffuf, nuclei, sqlmap, hydra, c2-profile, report, scope_check. Each calls `preflightOrDryrun` first. |
+| `internal/agent/tools` | ~800 | 21 tools: nmap, masscan, httpx, ffuf, nuclei, sqlmap, hydra, c2-profile, report, scope_check, subfinder, dnsx, cname, amass, gobuster, nikto, wafw00f, payloads, redteam-guide + 3 pybridge tools. Each calls `preflightOrDryrun` first. |
 | `internal/ui/model` | ~550 | Bubble Tea v2 TUI model — header bar, scrollable chat pane, keybind footer, input bar, splash screen, mouse-wheel support, command history. |
 | `internal/ui/logo` | ~165 | Unicode braille-art shark, REDSHARK block banner, semantic color palette, separator renderer. |
 | `internal/evidence` | ~180 | SHA-256 hash-chained append-only JSONL writer. Genesis hash = `sha256("RedShark:genesis")`. |
@@ -500,22 +509,29 @@ The scope ID appears in the header bar and input prompt prefix. Gate 2
 
 ## Roadmap
 
-### ✅ Done (v0.1.0-scaffold)
+### ✅ Done (v0.2.0-redteam-expansion)
 
 - Full Bubble Tea v2 TUI with shark mascot splash screen
 - Multi-pane layout: header bar, bordered chat pane, keybind footer, input bar
 - Semantic color palette (7 tokens)
 - Four-gate scope chain with hardcoded protected-target refusal
-- 10-tool toolset — 8 external + 2 internal, all scope-gated
+- **21-tool toolset** — 14 external binary tools + 7 pure-Go tools + 3 Python bridge tools
+  - External: nmap, masscan, httpx, ffuf, nuclei, sqlmap, hydra, gobuster, nikto, wafw00f, subfinder, dnsx, amass
+  - Pure-Go: cname (CNAME chain resolver), payloads (red-team payload reference), redteam-guide (AI security templates)
+  - Python bridge: deepteam (LLM red-team: 37 vulns × 28 attacks), benchmark (red-team benchmark runner), guardrails
 - Dry-run mode for every active tool
 - Evidence hash chain (`evidence-*/chain.jsonl`)
-- 5 test files covering scope, tools, logo, and model
+- **12+ test files** covering scope, tools, logo, model, new red-team tools
 - Mouse-wheel scrolling, command history, cursor editing
 - `redshark` binary with `--version`, `--scope` flags
+- Python bridge auto-starts on boot (graceful fallback if Python absent)
+- deepteam 1.0.6 + Flask 3.1.3 in `pybridge/.venv`
 
 ### ⚠️ In progress
 
-- LLM provider integration (current: `stubprovider` echo-back)
+- Real LLM provider integration (wired via `internal/pybridge/` / deepteam sidecar)
+- Python bridge health monitoring, restart on crash
+- ProjectDiscovery tool suite integration (naabu, httpx, dnsx, subfinder, asnmap)
 
 ### ❌ Not yet implemented
 
