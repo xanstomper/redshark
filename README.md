@@ -1,21 +1,58 @@
 <p align="center">
   <img src="https://img.shields.io/badge/binary-redshark-red?style=flat-square" alt="binary">
-  <img src="https://img.shields.io/badge/go-1.26.4-00ADD8?style=flat-square" alt="go">
+  <img src="https://img.shields.io/badge/go-1.26-00ADD8?style=flat-square" alt="go">
   <img src="https://img.shields.io/badge/TUI-Bubble%20Tea%20v2-FF69B4?style=flat-square" alt="bubbletea">
   <img src="https://img.shields.io/badge/scope-4%20gate%20chain-green?style=flat-square" alt="scope">
   <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="license">
 </p>
 
-<h1 align="center">
-  <pre>
-  ██████╗ ███████╗███████╗ ██████╗███████╗██╗  ██╗
-  ██╔══██╗██╔════╝██╔════╝██╔════╝██╔════╝██║ ██╔╝
-  ██████╔╝█████╗  ███████╗██║     █████╗  █████╔╝
-  ██╔══██╗██╔══╝  ╚════██║██║     ██╔══╝  ██╔═██╗
-  ██║  ██║███████╗███████║╚██████╗███████╗██║  ██╗
-  ╚═╝  ╚═╝╚══════╝╚══════╝ ╚═════╝╚══════╝╚═╝  ╚═╝</pre>
-  <h3 align="center">Operator-First Offensive Security TUI Agent</h3>
-</h1>
+<h1 align="center">RedShark</h1>
+
+<p align="center">
+<img src="https://github.com/xanstomper/redshark/raw/main/assets/mascot.png" alt="RedShark mascot" width="480"><br>
+<em>Operator-First Offensive Security TUI Agent</em>
+</p>
+
+<p align="center">
+<a href="#quickstart">Quickstart</a> · <a href="#architecture">Architecture</a> · <a href="#the-safety-contract--in-detail">Safety Contract</a> · <a href="#tool-inventory">Tools</a> · <a href="#evidence-chain">Evidence</a> · <a href="#roadmap">Roadmap</a>
+</p>
+
+---
+
+```
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣠⣤⣤⠶⠶⠶⠶⠾⠛⠛⠛⠛⠛⠛⠛⢿
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣤⣶⣿⣛⠛⠛⠛⠓⠢⢄⡀⠀⠤⠟⠂⠀⠀⠀⠀⠀⠀⢀⡿
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⠾⠛⠉⠑⠤⣙⢮⡉⠓⣦⣄⡀⠀⣹⠆⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⠃
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣠⣤⣤⡶⠞⠋⠉⠀⠀⠀⠀⠀⠀⠒⠛⠛⠛⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⢰⡟⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡴⠾⠛⠉⣡⡾⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣴⢺⢿⢉⡽⡟⢓⣶⠦⢤⣀⡀⠈⠳⣿⠁⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣀⡴⠟⠁⠀⠀⣀⣴⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡤⠚⠁⠀⢛⠛⠛⠻⢷⡧⣾⡴⣛⣏⣹⡇⣀⣿⠀⠀
+⠀⠀⠀⠀⠀⠀⣠⠞⠋⠀⣀⠤⠒⢉⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠔⠋⠀⣀⠴⠚⠛⠛⠯⡑⠂⠀⠀⡏⢹⣿⡾⠟⠋⠁⠀⠀
+⠀⠀⠀⠀⣠⠞⠁⠀⠐⠊⠀⠀⢠⡿⠁⠀⢰⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡏⣤⡿⠋⠀⠀⠀⠀⠀⠀⡹⠀⠀⠀⣠⡾⠋⠀⠀⠀⠀⠀⠀
+⠀⠀⣠⡞⠁⠀⠀⠀⠀⠀⠀⢠⡿⠁⢀⢸⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⣷⡞⠋⠉⠉⠓⠒⠢⢤⣴⣥⣆⣠⡾⠋⠀⠀⠀⣦⠀⠀⠀⠀
+⠀⣼⠋⠀⠀⠀⠀⠀⠀⠀⢀⡟⠀⠀⢸⠀⡆⢧⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⢽⣦⠀⠀⠀⠀⠀⠀⣟⡿⣽⡏⠀⠀⠀⠀⠀⡿⣧⠀⠀⠀
+⢸⣇⣤⣤⣤⣤⣄⡀⠀⢀⡾⠁⠀⠀⢘⡆⠱⡈⢆⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⢻⡚⡆⣀⠀⠀⠀⢸⡽⣿⠃⠀⠀⠀⠀⠀⡇⢹⡄⠀⠀
+⠀⠀⠀⠀⠀⠀⠈⠙⢷⣾⠃⠀⠀⠀⠈⠾⣦⣙⠪⢷⠄⠀⠀⠀⠀⠀⠀⠀⠈⠻⣭⣟⣹⢦⣀⣀⣟⣹⡟⠀⠀⠀⠀⠀⠀⡇⠈⣷⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⠀⠀⣤⠶⠖⠊⠉⠀⠉⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠦⣼⣞⣹⣯⠟⠁⠀⠀⠀⠀⠀⠀⡇⠀⢹⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣇⡾⠁⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢐⣲⡾⠟⠛⠳⣤⡀⠀⠀⠀⠀⠀⠀⡇⠀⣸⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢨⡟⠁⠀⠀⠀⠀⠀⠀⣼⠇⠀⠀⠀⠀⠀⠀⠀⠙⣻⡿⣿⣯⣁⠀⢰⡀⠀⠀⠙⠳⣄⡀⠀⢠⡟⠋⡔⣿⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢰⠏⠀⠀⠀⠀⠀⠀⢀⡼⠁⠀⠀⠀⠀⠀⠀⠀⢀⠔⠋⢰⠛⢄⠉⠛⠾⣧⡀⠀⠀⠀⠈⠻⣤⣸⡡⠎⢀⡏⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣰⠏⠀⠀⠀⠀⠀⠀⢀⡾⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠙⠲⢤⣈⣉⠳⢦⣄⡀⠀⠈⠻⣄⠀⣼⠃⠀⠀
+⠀⠀⠀⠀⠀⠀⢰⡟⠀⠀⠀⠀⠀⠀⢠⡾⡁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠛⠶⣤⡙⣾⠃⠀⠀⠀
+⠀⠀⠀⠀⠀⢀⡟⠀⠀⠀⠀⠀⠀⣠⠟⠀⠙⠢⢄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⠟⠻⠇⠀⠀⠀
+⠀⠀⠀⠀⠀⣸⠁⠀⠀⠀⣀⣤⠾⠻⣦⡀⠀⠀⠀⠈⠑⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⠟⠁⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣏⣠⡴⠞⠋⠉⠀⠀⠀⠈⠛⢶⣄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠂⣉⣽⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢋⡁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠛⠒⠶⠶⢤⣤⣤⣤⣤⣤⣤⣤⡤⠴⠶⠖⠚⠋⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+
+██████╗ ███████╗██████╗      ███████╗██╗  ██╗ █████╗ ██████╗ ██╗  ██╗
+██╔══██╗██╔════╝██╔══██╗     ██╔════╝██║  ██║██╔══██╗██╔══██╗██║ ██╔╝
+██████╔╝█████╗  ██║  ██║     ███████╗███████║███████║██████╔╝█████╔╝
+██╔══██╗██╔══╝  ██║  ██║     ╚════██║██╔══██║██╔══██║██╔══██╗██╔═██╗
+██║  ██║███████╗██████╔╝     ███████║██║  ██║██║  ██║██║  ██║██║  ██╗
+╚═╝  ╚═╝╚══════╝╚═════╝      ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝
+                        A G E N T
+```
+
+<p align="center"><em>RedShark • Offensive Security Operator &nbsp;|&nbsp; Built on Bubble Tea v2</em></p>
 
 ---
 
@@ -50,8 +87,7 @@ keybind footer, and scope-aware input bar.
 
 - **Go 1.24+** (tested on 1.26.4)
 - No external binaries required for `--dryrun` mode
-- For live tooling: `nmap`, `masscan`, `httpx`, `ffuf`, `nuclei`, `sqlmap`,
-  `hydra` should be on `$PATH`
+- For live tooling: `nmap`, `masscan`, `httpx`, `ffuf`, `nuclei`, `sqlmap`, `hydra` on `$PATH`
 
 ### Build
 
@@ -126,16 +162,17 @@ full-screen TUI with four visual zones:
 
 ### Splash screen
 
-On startup, RedShark displays a Unicode braille-art shark silhouette with the
-block-letter **REDSHARK** banner and tag line. The splash auto-dismisses after
-a timer *or* on any keypress — press any key to jump straight to the TUI.
+On startup, RedShark displays the full Unicode braille-art shark silhouette
+with the block-letter **REDSHARK** banner and **A G E N T** subtitle. The
+splash auto-dismisses after a timer *or* on any keypress — press any key
+to jump straight to the TUI.
 
 ### Visual zones
 
 | Zone | Purpose | Key details |
 |------|---------|-------------|
-| **Header** | Brand identity + live status | Shows `🦈 RedShark`, active scope ID, message count, version. Background in semantic `Accent` color. |
-| **Chat pane** | Scrollable message history | Rounded border with title. Supports mouse-wheel scrolling (`tea.MouseWheelMsg`). Mixes operator messages, agent responses, and bordered tool-output blocks. |
+| **Header** | Brand identity + live status | Shows `🦈 RedShark`, active scope ID, message count, version. Background in semantic `Primary` color. |
+| **Chat pane** | Scrollable message history | Rounded border with title. Supports mouse-wheel scrolling. Mixes operator messages, agent responses, and bordered tool-output blocks. |
 | **Footer** | Keybind reference | Dimmed hint bar showing available shortcuts. |
 | **Input** | Operator command entry | Scope-aware prompt prefix, full line editing with cursor, command history via `↑`/`↓`. |
 
@@ -145,13 +182,15 @@ All colors are drawn from the semantic palette in `internal/ui/logo/logo.go`:
 
 | Token | Hex | Usage |
 |-------|-----|-------|
-| `Accent` | `#FF4757` (red) | Brand highlights, header background, active scope badge |
-| `Primary` | `#E8E8E8` | Body text, chat messages |
-| `Secondary` | `#757575` | Dimmed text, footer hints, timestamps |
-| `Success` | `#2ECC71` | Gate pass, evidence confirmed |
-| `Warning` | `#F39C12` | Scope expiry warning, stale scope |
-| `Error` | `#E74C3C` | Gate refusal, tool failure |
-| `Neutral` | `#4A4A4A` | Inactive elements, empty state text |
+| `Primary` | `#E8443A` | Brand red — logo, header, accents |
+| `PrimaryHi` | `#FF4C4C` | Bright highlights, active scope badge |
+| `PrimaryDim` | `#8B1A1A` | Muted shark silhouette |
+| `Accent` | `#00CED1` | Cyan — scope tags, status chips, spinners |
+| `Neutral` | `#6B6B6B` | Dimmed text, borders, dividers |
+| `NeutralHi` | `#AAAAAA` | Interactive text, subtitle |
+| `Danger` | `#FF4444` | Refusal, tool failure, inactive scope |
+| `Success` | `#89FF69` | Gate pass, evidence confirmed |
+| `Warning` | `#FFD700` | Scope expiry warning |
 
 ---
 
@@ -198,6 +237,8 @@ internal/
   ansi/                ANSI escape code utilities
 ```
 
+### Package breakdown
+
 | Package | LOC | What it owns |
 |---------|-----|-------------|
 | `internal/scope` | ~370 | Scope document, gate chain, protected-target lists. **The single most critical package.** |
@@ -236,14 +277,14 @@ future API call can override this. The list lives in
 ```
 fbi  cia  nsa  dhs  dea  interpol  mi6  mi5  gchq
 mossad  fsb  dgse  dgsi  bnd  csis  asis  nato
-csirt  finfisher  nsa  dod  doddef
+csirt  finfisher  dod  doddef
 ```
 
 A keyword match fires on *any* subdomain or TLD: `mi6.internal.lan` is
 refused. `fbi.mycompany.com` is refused. The check is case-insensitive and
 matches anywhere in the hostname.
 
-### Layer 2–4: The four-gate scope chain
+### Layers 2–4: The four-gate scope chain
 
 Every active tool invocation runs through `scope.Authorize(target, technique)`:
 
